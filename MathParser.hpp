@@ -4,79 +4,50 @@
 #include <iostream>
 #include <functional>
 
-const double M_PI  = 3.14159265358979323;
-const double M_E   = 2.71828182845904523;
-
-struct StateDict {
-	std::unordered_map<std::string, double> vars;
-	std::unordered_map<std::string, std::function<double(double)>> functions;
-	std::string last_line = "_";
-};
-
-struct ReturnedInfo {
-	bool worked;
-	double value;
-	std::string error_msg;
-};
-
-enum TokenType {
-	Number,
-	Alphanum,
-	Open,
-	Close,
-	Equal,
-	Unknown,
-	Whitespace,
-	Ignore,
-	Operation,
-	Result
-};
-
-struct ParsingToken {
-	TokenType type;
-	std::string text;
-	bool complete;
-};
-
-struct Token {
-	TokenType type;
-	double value;
-	std::string text;
-};
-
-class MathParser {
-public:
-	StateDict setup() {
-		StateDict dict;
-		_addConstants(dict);
-		return dict;
-	}
-	
-	ReturnedInfo RunLine(std::string line, StateDict& dict) {
-		ReturnedInfo result;
-		
-		std::vector<Token> tokens = _getTokens(line);
-		
-		if (!dict.last_line.empty()) {
-			tokens.insert(tokens.begin(), {
-				Equal,
-				0,
-				"="
-			});
-			tokens.insert(tokens.begin(), {
-				Alphanum,
-				0,
-				dict.last_line
-			});
-		}
-		
-		result.worked = _parseTree(tokens, result.value, dict);
-		
-		return result;
-	}
-	
+class MathParser {	
 private:
+	struct StateDict {
+		std::unordered_map<std::string, double> vars;
+		std::unordered_map<std::string, std::function<double(double)>> functions;
+		std::string last_line = "_";
+	};
+	
+	struct ReturnedInfo {
+		bool worked;
+		double value;
+		std::string error_msg;
+	};
+	
+	enum TokenType {
+		Number,
+		Alphanum,
+		Open,
+		Close,
+		Equal,
+		UnknownToken,
+		Whitespace,
+		Ignore,
+		Operation,
+		Result
+	};
+	
+	struct ParsingToken {
+		TokenType type;
+		std::string text;
+		bool complete;
+	};
+	
+	struct Token {
+		TokenType type;
+		double value;
+		std::string text;
+	};
+	
+	
 	void _addConstants(StateDict& dict) {
+		const double M_PI  = 3.14159265358979323;
+		const double M_E   = 2.71828182845904523;
+		
 		// ---- Mathematical constants ----
 		dict.vars["pi"]      = M_PI;
 		dict.vars["e"]       = M_E;
@@ -166,8 +137,8 @@ private:
 		dict.functions["sign"]  = [](double a){ return (a > 0) - (a < 0); };
 	
 		// ---- Angle conversion ----
-		dict.functions["deg"] = [](double a){ return a * 180.0 / M_PI; }; // radians -> degrees
-		dict.functions["rad"] = [](double a){ return a * M_PI / 180.0; }; // degrees -> radians
+		dict.functions["deg"] = [M_PI](double a){ return a * 180.0 / M_PI; }; // radians -> degrees
+		dict.functions["rad"] = [M_PI](double a){ return a * M_PI / 180.0; }; // degrees -> radians
 	
 		// ---- Special functions ----
 		dict.functions["gamma"]  = [](double a){ return std::tgamma(a); };
@@ -221,7 +192,7 @@ private:
 				sublevel.push_back(T);
 			}
 			
-			if (T.type == Unknown) {
+			if (T.type == UnknownToken) {
 				return false; // don't know this token
 			}
 		}
@@ -761,7 +732,7 @@ private:
 			};
 		}else {
 			return {
-				Unknown,
+				UnknownToken,
 				std::string()+c,
 				true,
 			};
@@ -833,7 +804,7 @@ private:
 			bool worked = _stringToDouble(token.text, value);
 			
 			if (!worked) {
-				token.type = Unknown; // couldn't parse
+				token.type = UnknownToken; // couldn't parse
 			}
 		}
 		
@@ -887,6 +858,36 @@ private:
 		if (curToken.type != Ignore) {
 			result.push_back(_parsingTokenToToken(curToken));
 		}
+		
+		return result;
+	}
+
+public:
+	StateDict setup() {
+		StateDict dict;
+		_addConstants(dict);
+		return dict;
+	}
+	
+	ReturnedInfo RunLine(std::string line, StateDict& dict) {
+		ReturnedInfo result;
+		
+		std::vector<Token> tokens = _getTokens(line);
+		
+		if (!dict.last_line.empty()) {
+			tokens.insert(tokens.begin(), {
+				Equal,
+				0,
+				"="
+			});
+			tokens.insert(tokens.begin(), {
+				Alphanum,
+				0,
+				dict.last_line
+			});
+		}
+		
+		result.worked = _parseTree(tokens, result.value, dict);
 		
 		return result;
 	}

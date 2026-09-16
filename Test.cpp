@@ -1,4 +1,4 @@
-#include "MathParser.cpp"
+#include "MathParser.hpp"
 
 int main() {
 	MathParser parser;
