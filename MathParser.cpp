@@ -6,7 +6,6 @@
 
 const double M_PI  = 3.14159265358979323;
 const double M_E   = 2.71828182845904523;
-const double M_PHI = 1.61803398874989484;
 
 struct StateDict {
 	std::unordered_map<std::string, double> vars;
@@ -78,49 +77,103 @@ public:
 	
 private:
 	void _addConstants(StateDict& dict) {
-		dict.vars["pi"] = M_PI;
-		dict.vars["e"] = M_E;
-		dict.vars["phi"] = M_PHI;
+		// ---- Mathematical constants ----
+		dict.vars["pi"]      = M_PI;
+		dict.vars["e"]       = M_E;
+		dict.vars["phi"]     = 1.6180339887498948482045868343656381177203091798057628621354486227;
+		dict.vars["tau"]     = 2.0 * M_PI;
+		dict.vars["sqrt2"]   = std::sqrt(2);
+		dict.vars["sqrt1_2"] = std::sqrt(1/2);
+		dict.vars["ln2"]     = std::log(2);
+		dict.vars["ln10"]    = std::log(10);
+		dict.vars["euler_gamma"] = 0.5772156649015328606065120900824024310421593359399235988057672348;
+	
+		// ---- Physics constants (SI units) ----
+		dict.vars["c"]        = 299792458.0;             // speed of light in vacuum, m/s (exact)
+		dict.vars["G"]        = 6.67430e-11;              // gravitational constant, m^3 kg^-1 s^-2
+		dict.vars["g"]        = 9.80665;                  // standard gravity, m/s^2 (exact, defined)
+		dict.vars["h"]        = 6.62607015e-34;           // Planck constant, J*s (exact)
+		dict.vars["hbar"]     = 1.054571817e-34;          // reduced Planck constant, J*s
+		dict.vars["e_charge"] = 1.602176634e-19;          // elementary charge, C (exact)
+		dict.vars["k_B"]      = 1.380649e-23;             // Boltzmann constant, J/K (exact)
+		dict.vars["N_A"]      = 6.02214076e23;            // Avogadro constant, mol^-1 (exact)
+		dict.vars["R"]        = 8.31446261815324;         // molar gas constant, J/(mol*K)
+		dict.vars["sigma_SB"] = 5.670374419e-8;           // Stefan-Boltzmann constant, W/(m^2*K^4)
+		dict.vars["epsilon0"] = 8.8541878128e-12;         // vacuum permittivity, F/m
+		dict.vars["mu0"]      = 1.25663706212e-6;         // vacuum permeability, N/A^2
+		dict.vars["m_e"]      = 9.1093837015e-31;         // electron mass, kg
+		dict.vars["m_p"]      = 1.67262192369e-27;        // proton mass, kg
+		dict.vars["m_n"]      = 1.67492749804e-27;        // neutron mass, kg
+		dict.vars["u"]        = 1.66053906660e-27;        // atomic mass unit, kg
+		dict.vars["atm"]      = 101325.0;                 // standard atmosphere, Pa (exact)
+		dict.vars["au"]       = 1.495978707e11;            // astronomical unit, m
+		dict.vars["ly"]       = 9.4607304725808e15;        // light year, m
+		dict.vars["parsec"]   = 3.0856775814913673e16;     // parsec, m
+	
+		// ---- Trig ----
+		dict.functions["cos"] = [](double a){ return std::cos(a); };
+		dict.functions["sin"] = [](double a){ return std::sin(a); };
+		dict.functions["tan"] = [](double a){ return std::tan(a); };
+	
+		dict.functions["acos"] = [](double a){ return std::acos(a); };
+		dict.functions["asin"] = [](double a){ return std::asin(a); };
+		dict.functions["atan"] = [](double a){ return std::atan(a); };
+	
+		dict.functions["cosh"] = [](double a){ return std::cosh(a); };
+		dict.functions["sinh"] = [](double a){ return std::sinh(a); };
+		dict.functions["tanh"] = [](double a){ return std::tanh(a); };
+	
+		dict.functions["acosh"] = [](double a){ return std::acosh(a); };
+		dict.functions["asinh"] = [](double a){ return std::asinh(a); };
+		dict.functions["atanh"] = [](double a){ return std::atanh(a); };
+	
+		dict.functions["sec"] = [](double a){ return 1.0/std::cos(a); };
+		dict.functions["csc"] = [](double a){ return 1.0/std::sin(a); };
+		dict.functions["cot"] = [](double a){ return 1.0/std::tan(a); };
+	
+		dict.functions["asec"] = [](double a){ return std::acos(1.0/a); };
+		dict.functions["acsc"] = [](double a){ return std::asin(1.0/a); };
+		dict.functions["acot"] = [](double a){ return std::atan(1.0/a); };
+	
+		dict.functions["sech"] = [](double a){ return 1.0/std::cosh(a); };
+		dict.functions["csch"] = [](double a){ return 1.0/std::sinh(a); };
+		dict.functions["coth"] = [](double a){ return 1.0/std::tanh(a); };
+	
+		dict.functions["asech"] = [](double a){ return std::acosh(1.0/a); };
+		dict.functions["acsch"] = [](double a){ return std::asinh(1.0/a); };
+		dict.functions["acoth"] = [](double a){ return std::atanh(1.0/a); };   // fixed: was overwriting "atanh"
 		
-		// consider adding physics constants (c, g, G, other constants)
+		// ---- Exponential / logarithmic ----
+		dict.functions["exp"]   = [](double a){ return std::exp(a); };
+		dict.functions["exp2"]  = [](double a){ return std::exp2(a); };
+		dict.functions["expm1"] = [](double a){ return std::expm1(a); };
+		dict.functions["ln"]    = [](double a){ return std::log(a); };
+		dict.functions["log"]   = [](double a){ return std::log(a); };
+		dict.functions["log10"] = [](double a){ return std::log10(a); };
+		dict.functions["log2"]  = [](double a){ return std::log2(a); };
+		dict.functions["log1p"] = [](double a){ return std::log1p(a); };
+	
+		// ---- Powers / roots ----
+		dict.functions["sqrt"]  = [](double a){ return std::sqrt(a); };
+		dict.functions["cbrt"]  = [](double a){ return std::cbrt(a); };
 		
-		// functions
-		dict.functions["cos"] =  [](double a){ return std::cos(a); };
-		dict.functions["sin"] =  [](double a){ return std::sin(a); };
-		dict.functions["tan"] =  [](double a){ return std::tan(a); };
-		
-		dict.functions["acos"] =  [](double a){ return std::acos(a); };
-		dict.functions["asin"] =  [](double a){ return std::asin(a); };
-		dict.functions["atan"] =  [](double a){ return std::atan(a); };
-		
-		dict.functions["cosh"] =  [](double a){ return std::cosh(a); };
-		dict.functions["sinh"] =  [](double a){ return std::sinh(a); };
-		dict.functions["tanh"] =  [](double a){ return std::tanh(a); };
-		
-		dict.functions["acosh"] =  [](double a){ return std::acosh(a); };
-		dict.functions["asinh"] =  [](double a){ return std::asinh(a); };
-		dict.functions["atanh"] =  [](double a){ return std::atanh(a); };
-		
-		dict.functions["sec"] =  [](double a){ return 1.0/std::cos(a); };
-		dict.functions["csc"] =  [](double a){ return 1.0/std::sin(a); };
-		dict.functions["cot"] =  [](double a){ return 1.0/std::tan(a); };
-		
-		dict.functions["asec"] =  [](double a){ return std::acos(1.0/a); };
-		dict.functions["acsc"] =  [](double a){ return std::asin(1.0/a); };
-		dict.functions["acot"] =  [](double a){ return std::atan(1.0/a); };
-		
-		dict.functions["sech"] =  [](double a){ return 1.0/std::cosh(a); };
-		dict.functions["csch"] =  [](double a){ return 1.0/std::sinh(a); };
-		dict.functions["coth"] =  [](double a){ return 1.0/std::tanh(a); };
-		
-		dict.functions["asech"] =  [](double a){ return std::acosh(1.0/a); };
-		dict.functions["acsch"] =  [](double a){ return std::asinh(1.0/a); };
-		dict.functions["atanh"] =  [](double a){ return std::atanh(1.0/a); };
-		
-		dict.functions["ln"] =  [](double a){ return std::log(a); };
-		dict.functions["log"] =  [](double a){ return std::log(a); };
-		dict.functions["log10"] =  [](double a){ return std::log10(a); };
-		dict.functions["log2"] =  [](double a){ return std::log2(a); };
+		// ---- Rounding / sign ----
+		dict.functions["abs"]   = [](double a){ return std::fabs(a); };
+		dict.functions["floor"] = [](double a){ return std::floor(a); };
+		dict.functions["ceil"]  = [](double a){ return std::ceil(a); };
+		dict.functions["round"] = [](double a){ return std::round(a); };
+		dict.functions["trunc"] = [](double a){ return std::trunc(a); };
+		dict.functions["sign"]  = [](double a){ return (a > 0) - (a < 0); };
+	
+		// ---- Angle conversion ----
+		dict.functions["deg"] = [](double a){ return a * 180.0 / M_PI; }; // radians -> degrees
+		dict.functions["rad"] = [](double a){ return a * M_PI / 180.0; }; // degrees -> radians
+	
+		// ---- Special functions ----
+		dict.functions["gamma"]  = [](double a){ return std::tgamma(a); };
+		dict.functions["lgamma"] = [](double a){ return std::lgamma(a); };
+		dict.functions["erf"]    = [](double a){ return std::erf(a); };
+		dict.functions["erfc"]   = [](double a){ return std::erfc(a); };
 	}
 	
 	void _printTokens(std::vector<Token> tokens) {
